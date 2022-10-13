@@ -6,42 +6,42 @@ import java.io.Serializable;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author HP
  */
-public class User implements Serializable{
-    private String username,password,server;
+public class User implements Serializable {
 
-    public User(String username, String password,String server) {
-        this.username = username;
-        this.password = password;
-        this.server=server;
-    }
+     private String username, password, server;
 
-    public String getUsername() {
-        return username;
-    }
+     public User(String username, String password, String server) {
+          this.username = username;
+          this.password = password;
+          this.server = server;
+     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+     public String getUsername() {
+          return username;
+     }
 
-    public String getPassword() {
-        return password;
-    }
+     public void setUsername(String username) {
+          this.username = username;
+     }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+     public String getPassword() {
+          return password;
+     }
 
-    public String getServer() {
-        return server;
-    }
+     public void setPassword(String password) {
+          this.password = password;
+     }
 
-    public void setServer(String server) {
-        this.server = server;
-    }
-    
+     public String getServer() {
+          return server;
+     }
+
+     public void setServer(String server) {
+          this.server = server;
+     }
+
 }

@@ -29,90 +29,91 @@ import javax.swing.table.DefaultTableModel;
  */
 public class Home extends javax.swing.JFrame {
 
-    /**
-     * Creates new form Home
-     */
-    private static User user;
-    private static Message[] listMessages;
-    DefaultTableModel tm;
-    private static Properties props;
+     /**
+      * Creates new form Home
+      */
+     private static User user;
+     private static Message[] listMessages;
+     DefaultTableModel tm;
+     private static Properties props;
+     private Folder inbox;
 
-    public Home(User user, Properties props) throws MessagingException, IOException {
-        initComponents();
-        this.user = user;
-        this.props = props;
-        setLocationRelativeTo(this);
-        this.setTitle("Trang chủ");
-        String cols[] = {"Người gửi", "Tiêu đề - Nội dung", "Thời gian"};
-        tm = new DefaultTableModel(cols, 0);
-        jTable1.setModel(tm);
-        nameEmail.setText(user.getUsername());
-        HopThuDen();
-    }
+     public Home(User user, Properties props) throws MessagingException, IOException {
+          initComponents();
+          this.user = user;
+          this.props = props;
+          setLocationRelativeTo(this);
+          this.setTitle("Trang chủ");
+          String cols[] = {"Người gửi", "Tiêu đề - Nội dung", "Thời gian"};
+          tm = new DefaultTableModel(cols, 0);
+          jTable1.setModel(tm);
+          nameEmail.setText(user.getUsername());
+          HopThuDen();
+     }
 
-    private void HopThuDen() throws MessagingException, IOException {
-        tm.setRowCount(0);
-        Session session = Session.getInstance(props, null);
-        Store store = session.getStore();
-        store.connect(user.getUsername(), user.getPassword());
-        Folder inbox = store.getFolder("INBOX");// lấy danh sách các mail trên server về để đọc
-        inbox.open(Folder.READ_ONLY);
-        listMessages = inbox.getMessages();
-//        for (int i = 0; i < listMessages.length; i++) {
-        for (int i = 0; i < 10; i++) {
-            Message msg = listMessages[i];
-            Address[] fromAddress = msg.getFrom();// trar ve danh sach nguoi gui trong thuoc tinh from cua thu
-            String from = fromAddress[0].toString();
-            from = MimeUtility.decodeText(from.replaceAll("\"", ""));
-            String subject = msg.getSubject();// lay chu de cua thu
-            if (subject == null) {
-                subject = "(không có chủ đề)";
-            }
-            String sentDate = msg.getSentDate().toString();
-            String contentType = msg.getContentType();
-            String messageContent = "";
-            if (contentType.contains("multipart")) {
-                Multipart multipart = (Multipart) msg.getContent();
-                for (int j = 0; j < multipart.getCount(); j++) {
-                    MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(j);
-                    if (!Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()))// day la noi dung chinh
-                    {
-                        messageContent = part.getContent().toString();
+     private void HopThuDen() throws MessagingException, IOException {
+          tm.setRowCount(0);
+          Session session = Session.getInstance(props, null);
+          Store store = session.getStore();
+          store.connect(user.getUsername(), user.getPassword());
+          inbox = store.getFolder("INBOX");// lấy danh sách các mail trên server về để đọc
+          inbox.open(Folder.READ_WRITE);
+          listMessages = inbox.getMessages();
+          for (int i = 0; i < listMessages.length; i++) {
+//        for (int i = 0; i < 10; i++) {
+               Message msg = listMessages[i];
+               Address[] fromAddress = msg.getFrom();// trar ve danh sach nguoi gui trong thuoc tinh from cua thu
+               String from = fromAddress[0].toString();
+               from = MimeUtility.decodeText(from.replaceAll("\"", ""));
+               String subject = msg.getSubject();// lay chu de cua thu
+               if (subject == null) {
+                    subject = "(không có chủ đề)";
+               }
+               String sentDate = msg.getSentDate().toString();
+               String contentType = msg.getContentType();
+               String messageContent = "";
+               if (contentType.contains("multipart")) {
+                    Multipart multipart = (Multipart) msg.getContent();
+                    for (int j = 0; j < multipart.getCount(); j++) {
+                         MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(j);
+                         if (!Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()))// day la noi dung chinh
+                         {
+                              messageContent = part.getContent().toString();
+                         }
                     }
-                }
-            } else if (contentType.contains("text/plain") || contentType.contains("text/html")) {
-                Object content = msg.getContent();
-                if (content != null) {
-                    messageContent = content.toString();
-                }
-            }
-            tm.addRow(toObject(from, subject + " - " + messageContent, sentDate));
-        }
-    }
+               } else if (contentType.contains("text/plain") || contentType.contains("text/html")) {
+                    Object content = msg.getContent();
+                    if (content != null) {
+                         messageContent = content.toString();
+                    }
+               }
+               tm.addRow(toObject(from, subject + " - " + messageContent, sentDate));
+          }
+     }
 
-    private Object[] toObject(String from, String subject, String date) {
-        return new Object[]{from, subject, date};
-    }
+     private Object[] toObject(String from, String subject, String date) {
+          return new Object[]{from, subject, date};
+     }
 
-    private String parseAddresses(Address[] address) {
-        String listAddress = "";
-        if (address != null) {
-            for (int i = 0; i < address.length; i++) {
-                listAddress += address[i].toString() + ", ";
-            }
-        }
-        if (listAddress.length() > 1) {
-            listAddress = listAddress.substring(0, listAddress.length() - 2);// loai bo dau , o cuoi chuoi
-        }
-        return listAddress;
-    }
+     private String parseAddresses(Address[] address) {
+          String listAddress = "";
+          if (address != null) {
+               for (int i = 0; i < address.length; i++) {
+                    listAddress += address[i].toString() + ", ";
+               }
+          }
+          if (listAddress.length() > 1) {
+               listAddress = listAddress.substring(0, listAddress.length() - 2);// loai bo dau , o cuoi chuoi
+          }
+          return listAddress;
+     }
 
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
+     /**
+      * This method is called from within the constructor to initialize the form. WARNING:
+      * Do NOT modify this code. The content of this method is always regenerated by the
+      * Form Editor.
+      */
+     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -128,6 +129,7 @@ public class Home extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
+        jLabel1.setIcon(new javax.swing.ImageIcon("C:\\Users\\HP\\Downloads\\btl_demo-main\\btl_demo-main\\btl\\src\\anh1.png")); // NOI18N
         jLabel1.setText("jLabel1");
 
         nameEmail.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
@@ -194,12 +196,9 @@ public class Home extends javax.swing.JFrame {
                         .addComponent(nameEmail, javax.swing.GroupLayout.PREFERRED_SIZE, 390, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
-                                    .addComponent(jButton2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, 160, Short.MAX_VALUE)
-                                    .addComponent(jButton5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addComponent(jButton2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jButton1, javax.swing.GroupLayout.Alignment.CENTER, javax.swing.GroupLayout.DEFAULT_SIZE, 160, Short.MAX_VALUE)
+                            .addComponent(jButton5, javax.swing.GroupLayout.Alignment.CENTER, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jButton4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 794, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -236,79 +235,80 @@ public class Home extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
-        (new SendMail(user)).setVisible(true);
-        this.dispose();
+         // TODO add your handling code here:
+         (new SendMail(user)).setVisible(true);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        try {
-            HopThuDen();
-        } catch (MessagingException ex) {
-            Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
-        }
+         try {
+              HopThuDen();
+         } catch (MessagingException ex) {
+              Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
+         } catch (IOException ex) {
+              Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
+         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
-        // TODO add your handling code here:
-        int row = jTable1.getSelectedRow();
-        if (row >= 0 && row < jTable1.getRowCount()) {
-            try {
-                new ReadMail(listMessages[row],user).setVisible(true);
-            } catch (MessagingException ex) {
-                Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
+         // TODO add your handling code here:
+         int row = jTable1.getSelectedRow();
+         if (row >= 0 && row < jTable1.getRowCount()) {
+              try {
+                   new ReadMail(listMessages[row], user,inbox, props ).setVisible(true);
+              } catch (MessagingException ex) { 
+                   Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
+              } catch (IOException ex) {
+                   Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
+              }
+         }
     }//GEN-LAST:event_jTable1MouseClicked
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-        // TODO add your handling code here:
+         // TODO add your handling code here:
+         new Login().setVisible(true);
+         this.dispose();
     }//GEN-LAST:event_jButton5ActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+     /**
+      * @param args the command line arguments
+      */
+     public static void main(String args[]) {
+          /* Set the Nimbus look and feel */
+          //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+          /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Home.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Home.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Home.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Home.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
+           */
+          try {
+               for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                    if ("Nimbus".equals(info.getName())) {
+                         javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                         break;
+                    }
+               }
+          } catch (ClassNotFoundException ex) {
+               java.util.logging.Logger.getLogger(Home.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+          } catch (InstantiationException ex) {
+               java.util.logging.Logger.getLogger(Home.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+          } catch (IllegalAccessException ex) {
+               java.util.logging.Logger.getLogger(Home.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+          } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+               java.util.logging.Logger.getLogger(Home.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+          }
+          //</editor-fold>
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    new Home(user, props).setVisible(true);
-                } catch (MessagingException ex) {
-                    Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException ex) {
-                    Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
-    }
+          /* Create and display the form */
+          java.awt.EventQueue.invokeLater(new Runnable() {
+               public void run() {
+                    try {
+                         new Home(user, props).setVisible(true);
+                    } catch (MessagingException ex) {
+                         Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (IOException ex) {
+                         Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+               }
+          });
+     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
