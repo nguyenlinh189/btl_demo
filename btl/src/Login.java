@@ -228,10 +228,4 @@ public class Login extends javax.swing.JFrame {
     private javax.swing.JTextField username;
     // End of variables declaration//GEN-END:variables
 }
-//dskymchlrotxkjgu
-//qirowdgbsbjrdbqo
-// nguyenthilinh19821@gmail.com
-// banhtrangmamruoc000@gmail.com
-// linhnt.b19cn378@stu.ptit.edu.vn
-//huyttr68@outlook.com
-//w:R-G:vXm27f4BP
+
